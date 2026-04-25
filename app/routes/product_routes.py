@@ -9,20 +9,30 @@ product_bp = Blueprint('products', __name__)
 def get_products():
     search_query = request.args.get('search', '')
     category_filter = request.args.get('category', '')
+    min_price = request.args.get('min_price', type=float)
+    max_price = request.args.get('max_price', type=float)
     page = request.args.get('page', 1, type=int)
-    limit = request.args.get('limit', 10, type=int)
-    
+    limit = min(request.args.get('limit', 10, type=int), 100)  # cap at 100
+
     query = Product.query
+
     if search_query:
         query = query.filter(Product.name.ilike(f'%{search_query}%'))
     if category_filter:
         query = query.filter(Product.category == category_filter)
-        
+    if min_price is not None:
+        query = query.filter(Product.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Product.price <= max_price)
+
     pagination = query.paginate(page=page, per_page=limit, error_out=False)
     products = pagination.items
-    
+
     result = []
     for p in products:
+        avg_rating = None
+        if p.reviews:
+            avg_rating = round(sum(r.rating for r in p.reviews) / len(p.reviews), 1)
         result.append({
             'id': p.id,
             'name': p.name,
@@ -30,14 +40,22 @@ def get_products():
             'category': p.category,
             'price': p.price,
             'stock': p.stock,
-            'image_url': p.image_url
+            'image_url': p.image_url,
+            'avg_rating': avg_rating,
+            'review_count': len(p.reviews)
         })
-        
+
     return jsonify({
         'products': result,
         'total': pagination.total,
         'pages': pagination.pages,
-        'current_page': page
+        'current_page': page,
+        'filters_applied': {
+            'search': search_query or None,
+            'category': category_filter or None,
+            'min_price': min_price,
+            'max_price': max_price
+        }
     }), 200
 
 @product_bp.route('/<int:product_id>', methods=['GET'])
