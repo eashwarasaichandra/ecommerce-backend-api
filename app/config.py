@@ -4,9 +4,7 @@ from datetime import timedelta
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-do-not-use-in-production')
     
-    # We use SQLite for local dev, easily scalable to MySQL 
-    # Example export for MySQL: 
-    # export DATABASE_URL="mysql+mysqlconnector://user:password@localhost/dbname"
+    # Database configuration
     
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(basedir, 'app.db'))

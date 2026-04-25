@@ -27,7 +27,7 @@ A production-grade RESTful E-Commerce backend built with **Python Flask**, **SQL
 E-Commerce Backend - Major Project/
 ├── app/
 │   ├── __init__.py          # App factory, error handlers, blueprint registration
-│   ├── config.py            # Environment-based config (SQLite → PostgreSQL)
+│   ├── config.py            # Environment-based database configuration
 │   ├── models.py            # SQLAlchemy models: User, Product, Order, Cart, Review
 │   ├── utils.py             # JWT middleware, input validators, status transition logic
 │   └── routes/
@@ -63,8 +63,7 @@ graph TD
 - **Runtime**: Python 3.9+
 - **Framework**: Flask 3.x + Flask-SQLAlchemy + Flask-Bcrypt
 - **Auth**: PyJWT (HS256, 24h expiry)
-- **Database**: SQLite (local) → PostgreSQL (production)
-- **Deployment**: Gunicorn + Render
+- **Database**: SQLite (local)
 
 ---
 
