@@ -189,18 +189,6 @@ All errors return consistent JSON:
 
 ---
 
-## ☁️ Deployment (Render)
-
-1. Push to GitHub
-2. Create a new **Web Service** on [Render](https://render.com)
-3. Set environment variables:
-   - `DATABASE_URL` = your PostgreSQL connection string
-   - `JWT_SECRET_KEY` = a strong random string
-   - `SECRET_KEY` = a strong random string
-4. Set **Start Command**: `gunicorn run:app`
-
----
-
 ## 👤 Author
 
 **Eashwar Kancharla**
