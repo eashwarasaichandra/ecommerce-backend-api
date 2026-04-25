@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" id="admin-container" style="display:none;">
+    <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Admin Dashboard</h2>
+        <span class="badge" style="position:static; padding: 0.5rem 1rem; font-size: 1rem;">Admin Mode Verified</span>
+    </div>
+    
+    <div class="cart-layout">
+        <div class="v-stack">
+            <h3>Manage Products</h3>
+            <div id="admin-products-list" class="v-stack">
+                <!-- Admin products list injected here -->
+            </div>
+        </div>
+        
+        <div class="glass-panel" style="padding: 2rem; align-self: start;">
+            <h3 id="form-title">Add New Product</h3>
+            <form id="add-product-form" class="auth-form" style="margin-top: 1rem;">
+                <!-- hidden field for edit mode -->
+                <input type="hidden" id="edit-p-id" value="">
+                <div style="display:flex; gap:1rem;">
+                    <div class="form-group" style="flex:2;">
+                        <label>Product Name</label>
+                        <input type="text" id="admin-p-name" required>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Category</label>
+                        <select id="admin-p-cat" style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--border); background:var(--bg-color); color:var(--text);" required>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Gaming">Gaming</option>
+                            <option value="Office">Office</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="admin-p-desc">
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Price ($)</label>
+                        <input type="number" id="admin-p-price" step="0.01" required>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Stock</label>
+                        <input type="number" id="admin-p-stock" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="url" id="admin-p-image">
+                </div>
+                <button type="submit" id="form-submit-btn" class="btn btn-primary btn-block">Create Product</button>
+                <button type="button" id="form-cancel-btn" class="btn btn-ghost btn-block mt-2 hidden" onclick="cancelEdit()">Cancel Edit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="admin-unauthorized" style="display:none; text-align:center; padding: 5rem 0;">
+    <h2 style="color:var(--danger)">Access Denied</h2>
+    <p>You must be logged in as an Administrator to view this page.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const userStr = localStorage.getItem('user');
+        if(!userStr) {
+            document.getElementById('admin-unauthorized').style.display = 'block';
+            return;
+        }
+        
+        try {
+            const user = JSON.parse(userStr);
+            if(user.role === 'admin') {
+                document.getElementById('admin-container').style.display = 'block';
+                fetchAdminProducts();
+                document.getElementById('add-product-form').addEventListener('submit', handleAddProduct);
+            } else {
+                document.getElementById('admin-unauthorized').style.display = 'block';
+            }
+        } catch(e) {
+            document.getElementById('admin-unauthorized').style.display = 'block';
+        }
+    });
+    
+    let allProducts = [];
+
+    async function fetchAdminProducts() {
+        try {
+            const data = await apiCall('/products/?limit=100');
+            allProducts = data.products || data;
+            const list = document.getElementById('admin-products-list');
+            
+            list.innerHTML = allProducts.map(p => `
+                <div class="cart-item">
+                    <div>
+                        <h4>ID: ${p.id} - ${p.name}</h4>
+                        <p style="font-size:0.875rem; color:var(--accent); font-weight:bold; margin-bottom: 0.25rem;">${p.category === 'Uncategorized' ? 'Other' : (p.category || 'Other')}</p>
+                        <p style="font-size:0.875rem;">Price: $${p.price.toFixed(2)} | Stock: ${p.stock}</p>
+                    </div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="btn btn-ghost" onclick="startEditProduct(${p.id})">Edit</button>
+                        <button class="btn btn-danger" onclick="handleDeleteProduct(${p.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch(err) {}
+    }
+    
+    function startEditProduct(id) {
+        const p = allProducts.find(prod => prod.id === id);
+        if(!p) return;
+        
+        document.getElementById('edit-p-id').value = p.id;
+        document.getElementById('admin-p-name').value = p.name;
+        document.getElementById('admin-p-cat').value = p.category === 'Uncategorized' ? 'Other' : (p.category || 'Other');
+        document.getElementById('admin-p-desc').value = p.description;
+        document.getElementById('admin-p-price').value = p.price;
+        document.getElementById('admin-p-stock').value = p.stock;
+        document.getElementById('admin-p-image').value = p.image_url;
+        
+        document.getElementById('form-title').innerText = 'Edit Product #' + p.id;
+        document.getElementById('form-submit-btn').innerText = 'Update Product';
+        document.getElementById('form-cancel-btn').classList.remove('hidden');
+    }
+    
+    function cancelEdit() {
+        document.getElementById('edit-p-id').value = '';
+        document.getElementById('add-product-form').reset();
+        document.getElementById('form-title').innerText = 'Add New Product';
+        document.getElementById('form-submit-btn').innerText = 'Create Product';
+        document.getElementById('form-cancel-btn').classList.add('hidden');
+    }
+    
+    async function handleAddProduct(e) {
+        e.preventDefault();
+        const editId = document.getElementById('edit-p-id').value;
+        const body = {
+            name: document.getElementById('admin-p-name').value,
+            category: document.getElementById('admin-p-cat').value,
+            description: document.getElementById('admin-p-desc').value,
+            price: parseFloat(document.getElementById('admin-p-price').value),
+            stock: parseInt(document.getElementById('admin-p-stock').value),
+            image_url: document.getElementById('admin-p-image').value
+        };
+        
+        try {
+            if (editId) {
+                await apiCall(`/products/${editId}`, 'PUT', body);
+                showToast('Product updated successfully!');
+                cancelEdit();
+            } else {
+                await apiCall('/products/', 'POST', body);
+                showToast('Product added successfully!');
+                document.getElementById('add-product-form').reset();
+            }
+            fetchAdminProducts();
+        } catch(err) {}
+    }
+    
+    async function handleDeleteProduct(id) {
+        if(!confirm('Delete this product permanently?')) return;
+        try {
+            await apiCall(`/products/${id}`, 'DELETE');
+            showToast('Product deleted');
+            fetchAdminProducts();
+        } catch(err) {}
+    }
+</script>
+{% endblock %}

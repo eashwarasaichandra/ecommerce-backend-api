@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="section-header">
+        <h2>Order Request History</h2>
+    </div>
+    
+    <div id="orders-list" class="v-stack">
+        <!-- Orders injected here -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        fetchOrders();
+    });
+</script>
+{% endblock %}

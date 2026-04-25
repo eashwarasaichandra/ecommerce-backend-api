@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexShop - Premium E-Commerce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">NexShop<span class="dot">.</span></a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Products</a>
+                <a href="/cart" class="nav-link cart-link" id="nav-cart">Cart <span id="cart-badge" class="badge hidden">0</span></a>
+                <a href="/orders" class="nav-link" id="nav-orders">Orders</a>
+                <a href="/admin" class="nav-link hidden" id="nav-admin" style="color: var(--accent);">Admin Dashboard</a>
+                <a href="/login" class="nav-link btn-ghost" id="nav-login">Login</a>
+                <a href="#" class="nav-link btn-ghost hidden" id="nav-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    <div id="toast" class="toast hidden"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
